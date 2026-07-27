@@ -12,8 +12,14 @@
 
 #include "RPN.hpp"
 
+#include <cctype>
+
 static bool isOperator(const std::string& token) {
     return token == PLUS || token == MINUS || token == MULTIPLY || token == DIVIDE;
+}
+
+static bool isSingleDigit(const std::string& token) {
+    return token.size() == 1 && std::isdigit(static_cast<unsigned char>(token[0])) != 0;
 }
 
 int RPN::evaluate(const std::string& expression) {
@@ -22,16 +28,11 @@ int RPN::evaluate(const std::string& expression) {
     std::string token;
 
     while (iss >> token) {
-        if (std::isdigit(token[0])) {
-            int value;
-            std::istringstream(token) >> value;
-            if (value < 0 || value > 9) {
-                throw std::runtime_error("Numbers must be between 0 and 9");
-            }
-            stack.push(value);
+        if (isSingleDigit(token)) {
+            stack.push(token[0] - '0');
         } else if (isOperator(token)) {
             if (stack.size() < 2) {
-                throw std::runtime_error("Invalid expression: not enough operands");
+                throw std::runtime_error("Error");
             }
             int b = stack.top();
             stack.pop();
@@ -44,18 +45,18 @@ int RPN::evaluate(const std::string& expression) {
             else if (token == MULTIPLY) result = a * b;
             else if (token == DIVIDE) {
                 if (b == 0) {
-                    throw std::runtime_error("Division by zero");
+                    throw std::runtime_error("Error");
                 }
                 result = a / b;
             }
             stack.push(result);
         } else {
-            throw std::runtime_error("Invalid token: " + token);
+            throw std::runtime_error("Error");
         }
     }
 
     if (stack.size() != 1) {
-        throw std::runtime_error("Invalid expression: too many operands");
+        throw std::runtime_error("Error");
     }
     return stack.top();
 }
